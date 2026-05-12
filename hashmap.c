@@ -1,4 +1,4 @@
-// version 1.1
+// version 0.03 - Beta
 #include <stdlib.h>
 #include <string.h>
 
@@ -162,4 +162,53 @@ static Data *map_get_Data(Map *map, const char *Search_key){
         index = (index + 1) % map->Array_Size;
     }
     return NULL;// Found an empty slot. Means the key asked for does not exist.
+}
+
+//retrieve value by key
+Value map_get_value(Map *map, const char *search_key){
+    Data *data = map_get_Data(map, search_key);
+    void *value;
+    size_t size;
+    if (data == NULL){
+        value = 0x0;
+        size = -1;
+    } else {
+        value = data->Value;
+        size = data->ValueSize;
+    }
+    Value tmp = {.size = size, .value = value};
+    return tmp;
+}
+
+size_t map_len(Map *map){
+    return map->Element_Count;
+}
+
+// return 0 if does not exist. Return 1 if exist
+int map_HasKey(Map *map, const char *search_key){
+    return internal_key_exist_search(map, search_key) == -1 ? 0 : 1;
+}
+
+const char *map_get_valueStr(Map *map, const char *search_key){
+    /*
+    ::: USE AT YOUR OWN RISK :::
+
+    ::: ONLY CALL THIS IF YOU KNOW VALUES ARE STRINGS :::
+
+    DOES NOT PROPERLY HANDLE WRONG KEYS. IF YOU ARE NOT SURE IF KEY EXIST USE map_HasKey FIRST
+    OR USE THE GENERIC map_get_value WHICH IS MUCH SAFER
+
+    Option to retrieve the pointer to value as a char * directly.
+    SHOULD NOT call if the caller explicitly does not know if the values containing in the map are strings.
+    Does not check for null terminator. USE AT YOUR OWN RISK.
+    Might add an option later to directly store values with a null terminator :map_Insert_value_as_str()
+    
+    */
+
+    Data *data = map_get_Data(map, search_key);
+    if (data != NULL){
+        return data->Value;
+    }
+    const char none_exist[] = "0";
+    return none_exist;
 }
