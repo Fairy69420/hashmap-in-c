@@ -1,34 +1,53 @@
-# C Hashmap Implementation
+# Hashmap
 
-A lightweight, dynamic-size hash map implementation in C using **Open Addressing (Linear Probing)** for collision resolution. This library supports generic `void *` values and handles string keys with automatic deep-copying.
+A generic, open-addressed hashmap in C. Store any value type using string keys. Automatically resizes when needed.
 
-## Features
-- **Dynamic Resizing**: Automatically doubles the internal array size when the load factor exceeds 0.75.
-- **Deep Copying**: Keys and values are copied into the map's own memory space, ensuring data persistence even if the original pointers go out of scope.
-- **Linear Probing**: Efficiently handles hash collisions by searching for the next available slot.
-- **Generic Values**: Stores any data type by taking a `void *` and the size of the data.
-
-## API Overview
+## API
 
 ### `Map *map_Create(size_t initial_entry_count)`
-Initializes a new hash map with the specified starting capacity.
+Create a new map with given initial capacity.
 
-### `void map_Insert(Map *Map_ptr, const char *key, const void *value, size_t V_Size)`
-Inserts a key-value pair. If the key already exists, the old value is freed and replaced with the new one.
+### `void map_Insert(Map *map, const char *key, const void *value, size_t value_size)`
+Insert or update a key-value pair. Automatically resizes when load factor exceeds 0.75.
 
-### `Data *map_Get(Map *Map_ptr, const char *Search_key)`
-Retrieves the internal `Data` struct associated with a key.
+### `int map_RemoveKey(Map *map, const char *key)`
+Remove a key from the map. Returns `1` if found, `-1` if not found.
 
-### `size_t map_GetValue(Map *Map_ptr, const char *search_Key, void **Value)`
-Copies the pointer of the value to the provided buffer and returns the size of the value.
+### `void map_Destroy(Map *map)`
+Free all map memory.
 
-### `char **map_GetKeys(Map *Map_ptr, size_t *key_count)`
-Returns an array of all keys currently in the map.
+## Quick Example
 
-### `void map_Destroy(Map *Map_ptr)`
-Recursively frees all memory associated with the map, including all keys and values.
+```c
+Map *map = map_Create(16);
 
-## Current Limitations & Future Improvements
-- **Deletion**: Currently, the map does not support deleting specific keys. Implementing this will require "Tombstone" markers to maintain probe chains.
-- **Error Handling**: `malloc` and `calloc` calls do not currently check for `NULL` returns (Out of Memory).
-- **Thread Safety**: The current implementation is not thread-safe.
+int val = 42;
+map_Insert(map, "answer", &val, sizeof(int));
+
+map_RemoveKey(map, "answer");
+
+map_Destroy(map);
+```
+
+## Features
+
+- **Generic values**: Store any data type by passing pointer and size
+- **Auto-resize**: Doubles capacity when needed
+- **Simple API**: Just 4 functions
+
+## Limitations
+
+- No retrieval API (no `map_Get()`)
+- No key iteration
+- Not thread-safe
+- Deletion uses tombstones (can fragment over time)
+
+## Future Ideas
+
+- `map_Get()` – retrieve values by key
+- `map_GetAllKeys()` / iterator API – iterate over keys
+- `map_HasKey()` – check key existence
+- `map_Rebuild()` – clean up tombstones after deletions
+- Thread-safe variants (e.g., with mutex or RWlock)
+
+
